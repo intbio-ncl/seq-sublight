@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 import argparse
 
-parser = argparse.ArgumentParser(description="Highlight subset of nodes from a larger superset in a SSN.")
+parser = argparse.ArgumentParser(description="Highlight subsets of protein sequences from a larger superset.")
 parser.add_argument("-g", "--graph", help="Path to the initial SSN graph (.gml).", type=str, required=False)
 parser.add_argument("-s", "--subset", help="Path to the subset file.", type=str, required=True)
 
