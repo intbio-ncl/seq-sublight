@@ -56,7 +56,7 @@ def colour_graph(subset):
 
     new_graph.add_edges_from(ini_graph.edges(data=True))
     nx.draw(new_graph, node_color=colour_lst, node_size=20, width=0.3,
-            pos=nx.nx_pydot.graphviz_layout(new_graph, prog='dot'))
+            pos=nx.nx_pydot.pydot_layout(new_graph))
 
     plt.draw()
     plt.savefig('ssn.png', dpi=500)
