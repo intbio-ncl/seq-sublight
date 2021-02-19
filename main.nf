@@ -1,15 +1,8 @@
 #!/usr/bin/env nextflow
 
 /*
-Nextflow workflow that solves the Maximum Diversity Problem (MDP) for a set
-of protein sequences using sequence identity as a distance metric.
-
-Required parameters are either a FASTA file with sequences OR the matrix/heading
-pair of files from a previous run, a solution subset size K, an output directory,
-and the solver to be used (greedy, ts, or all).
-
-Can optionally submit an annotation file, for which Coverage and Gini-Simpson
-values will be computed.
+Workflow that highlights a subset of sequences in a Sequence Similarity Network (SSN).
+Can either make an SSN from scratch if given sequences, or use an already existing SSN (in .gml)
 */
 
 
@@ -18,12 +11,24 @@ values will be computed.
 params.seqs = null
 params.subset = null
 params.threshold = null
+params.ini_ssn = 'null' // ini_ssn file is optional
 params.outdir = null
 
-seqs = file( params.seqs )
 subset = file ( params.subset )
-threshold = params.threshold
 
+flag = false
+
+if (params.seqs == null && params.ini_ssn != null){
+    ini_ssn_1 = Channel.fromPath( params.ini_ssn )
+    seqs = Channel.empty()
+
+}
+else {
+    seqs = file ( params.seqs )
+    threshold = params.threshold
+    ini_ssn_1 = Channel.empty()
+    flag = true
+}
 
 // Create output directory
 outdir = file( params.outdir )
@@ -33,24 +38,31 @@ outdir.mkdirs()
 process produce_identities{
     // Use needleall to produce all-vs-all global alignment sequence identities
 
+    publishDir outdir, mode : "copy"
+
     input:
     file seqs
 
     output:
-    file "identities.gml" into ini_ssn
+    file "ini_ssn.gml" into ini_ssn_2
+
+    when:
+    flag
 
     """
     nextflow run ravenlocke/nf-needleall-ava --infile ${seqs}  --outdir needle_out --threshold ${threshold} --cpu 4
-    cp ./needle_out/identities.gml ./
+    cp ./needle_out/identities.gml ./ini_ssn.gml
     """
 }
 
+// Merge the two ini_ssn channels so reusing previous runs can work
+ini_ssn = ini_ssn_2.mix(ini_ssn_1).first()
 
 process produce_nets{
-    // Solve the MDP
+    // Produce the highlighted network and picture
 
     publishDir outdir, mode : "copy"
-    container 'mdp-kit'
+    container 'chrisata/mdp-kit'
 
     input:
     file ini_ssn
@@ -62,6 +74,6 @@ process produce_nets{
 
 
     """
-    python3 /code/sublight.py -g ${ini_ssn} -s ${subset}
+    python3 /seq-sublight/lib/sublight.py -g ${ini_ssn} -s ${subset}
     """
 }
