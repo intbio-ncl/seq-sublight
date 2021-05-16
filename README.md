@@ -27,9 +27,10 @@ This workflow can be run with two different sets of inputs:
 
 ### From Scratch
 
-If you run this workflow from scratch, you need two inputs:
+If you run this workflow from scratch, you need three inputs:
 * A FASTA file containing the protein sequences you want to create an SSN for using `--seqs`.
-* A threshold for the SSN using `--threshold`
+* A threshold for the SSN using `--threshold`.
+* A subset file containing the list of sequences to highlight on the SSN using `--subset`, with one sequence name per line. These names should match the headers provided in the `--seqs` input.
 ```
 nextflow run intbio-ncl/seq-sublight --seqs test_seqs.fasta --threshold 0.4 --subset test_subset.txt  --outdir Test
 ```
